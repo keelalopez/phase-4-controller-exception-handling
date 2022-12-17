@@ -1,4 +1,5 @@
 class BirdsController < ApplicationController
+  rescue_from ActiveRecord::RecordNotFound, with: :render_not_fe_fromound_response
 
   # GET /birds
   def index
@@ -14,45 +15,51 @@ class BirdsController < ApplicationController
 
   # GET /birds/:id
   def show
+    # Using find_by
+    # bird = find_bird
+    # if bird
+    #   render json: bird
+    # else
+    #   render_not_found_response
+    # end
+
+    # Using AR exceptions, and updating to use rescue_from
     bird = find_bird
-    if bird
-      render json: bird
-    else
-      render_not_found_response
-    end
+    render json: bird
+  # rescue ActiveRecord::RecordNotFound
+  #   render_not_found_response
   end
 
   # PATCH /birds/:id
   def update
+    # bird = find_bird
+    # if bird
+    #   bird.update(bird_params)
+    #   render json: bird
+    # else
+    #   render_not_found_response
+    # end
+
     bird = find_bird
-    if bird
-      bird.update(bird_params)
-      render json: bird
-    else
-      render_not_found_response
-    end
+    bird.update(bird_params)
+    render json: bird
+    # updated because we are using rescue_from
+  # rescue ActiveRecord::RecordNotFound
+  #   render_not_found_response
   end
 
   # PATCH /birds/:id/like
   def increment_likes
-    bird = Bird.find_by(id: params[:id])
-    if bird
-      bird.update(likes: bird.likes + 1)
-      render json: bird
-    else
-      render json: { error: "Bird not found" }, status: :not_found
-    end
+    bird = find_bird
+    bird.update(likes: bird.likes + 1)
+    render json: bird
   end
 
   # DELETE /birds/:id
   def destroy
-    bird = Bird.find_by(id: params[:id])
-    if bird
-      bird.destroy
-      head :no_content
-    else
-      render json: { error: "Bird not found" }, status: :not_found
-    end
+    bird = find_bird
+    bird.destroy
+    head :no_content
   end
 
   private
@@ -68,6 +75,7 @@ class BirdsController < ApplicationController
   end
 
   def find_bird
-    Bird.find_by(id: params[:id])
+    # Bird.find_by(id: params[:id])
+    Bird.find(params[:id])
   end
 end
